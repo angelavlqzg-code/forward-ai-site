@@ -99,7 +99,7 @@ nav{
 }
 canvas#neural{
   position:absolute;inset:0;width:100%;height:100%;
-  pointer-events:none;z-index:0;opacity:.55;
+  pointer-events:none;z-index:0;opacity:.75;
 }
 .hero-content{position:relative;z-index:1;max-width:680px;}
 .hero-label{
@@ -1428,78 +1428,117 @@ footer{
 </footer>
 
 <script>
-// ── NEURAL NETWORK CANVAS ──
+// ── NEURAL NETWORK CANVAS — Premium AI visualization ──
 (function(){
   const canvas = document.getElementById('neural');
   const ctx = canvas.getContext('2d');
-  let W, H, nodes = [], animId;
+  let W, H, nodes = [], pulses = [], animId, frame = 0;
+
+  const SIG_R = [124,92,255], GRN_R = [0,230,168];
 
   function resize(){
-    const section = canvas.parentElement;
-    W = canvas.width = section.offsetWidth;
-    H = canvas.height = section.offsetHeight;
+    const s = canvas.parentElement;
+    W = canvas.width = s.offsetWidth;
+    H = canvas.height = s.offsetHeight;
   }
 
   function initNodes(){
-    nodes = [];
-    const count = Math.floor((W * H) / 18000);
-    for(let i = 0; i < count; i++){
+    nodes = []; pulses = [];
+    const hubCount = Math.max(5, Math.floor(W / 260));
+    for(let i = 0; i < hubCount; i++){
       nodes.push({
-        x: Math.random() * W,
-        y: Math.random() * H,
-        vx: (Math.random() - .5) * .35,
-        vy: (Math.random() - .5) * .35,
-        r: Math.random() * 2 + 1,
-        pulse: Math.random() * Math.PI * 2
+        x: (i + .5) / hubCount * W + (Math.random() - .5) * 80,
+        y: H * (.25 + Math.random() * .5),
+        vx: (Math.random() - .5) * .15, vy: (Math.random() - .5) * .15,
+        r: 4 + Math.random() * 3,
+        pulse: Math.random() * Math.PI * 2, pulseSpeed: .008 + Math.random() * .006,
+        isHub: true, color: Math.random() > .45 ? 'sig' : 'grn',
+        haloMax: 18 + Math.random() * 14
+      });
+    }
+    const satCount = Math.floor((W * H) / 14000);
+    for(let i = 0; i < satCount; i++){
+      nodes.push({
+        x: Math.random() * W, y: Math.random() * H,
+        vx: (Math.random() - .5) * .28, vy: (Math.random() - .5) * .28,
+        r: .8 + Math.random() * 1.6,
+        pulse: Math.random() * Math.PI * 2, pulseSpeed: .012 + Math.random() * .01,
+        isHub: false, color: Math.random() > .35 ? 'sig' : 'grn', haloMax: 0
       });
     }
   }
 
-  const colors = {
-    node: '#7C5CFF',
-    nodeGreen: '#00E6A8',
-    line: 'rgba(124,92,255,',
-    lineGreen: 'rgba(0,230,168,'
-  };
+  function spawnPulse(a, b){
+    pulses.push({ ax:a.x, ay:a.y, bx:b.x, by:b.y, t:0, speed:.012 + Math.random()*.01, color:a.color });
+  }
 
-  function draw(t){
+  function drawGlow(x, y, r, col, alpha){
+    const [R,G,B] = col === 'sig' ? SIG_R : GRN_R;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, `rgba(${R},${G},${B},${alpha})`);
+    g.addColorStop(1, `rgba(${R},${G},${B},0)`);
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fillStyle = g; ctx.fill();
+  }
+
+  function draw(){
+    frame++;
     ctx.clearRect(0, 0, W, H);
+
     nodes.forEach(n => {
-      n.x += n.vx; n.y += n.vy;
-      n.pulse += .015;
+      n.x += n.vx; n.y += n.vy; n.pulse += n.pulseSpeed;
       if(n.x < 0 || n.x > W) n.vx *= -1;
       if(n.y < 0 || n.y > H) n.vy *= -1;
     });
 
+    const maxDist = W < 700 ? 140 : 190;
     for(let i = 0; i < nodes.length; i++){
       for(let j = i+1; j < nodes.length; j++){
-        const dx = nodes[i].x - nodes[j].x;
-        const dy = nodes[i].y - nodes[j].y;
-        const dist = Math.sqrt(dx*dx+dy*dy);
-        const maxDist = 150;
+        const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
         if(dist < maxDist){
-          const alpha = (1 - dist/maxDist) * .4;
-          const useGreen = (i+j) % 5 === 0;
+          const alpha = (1 - dist/maxDist) * .35;
+          const ni = nodes[i], nj = nodes[j];
+          const [R,G,B] = (ni.color === 'sig' || nj.color === 'sig') ? SIG_R : GRN_R;
           ctx.beginPath();
-          ctx.strokeStyle = useGreen ? colors.lineGreen + alpha + ')' : colors.line + alpha + ')';
-          ctx.lineWidth = .6;
-          ctx.moveTo(nodes[i].x, nodes[i].y);
-          ctx.lineTo(nodes[j].x, nodes[j].y);
-          ctx.stroke();
+          ctx.strokeStyle = `rgba(${R},${G},${B},${alpha})`;
+          ctx.lineWidth = ni.isHub || nj.isHub ? .9 : .5;
+          ctx.moveTo(ni.x, ni.y); ctx.lineTo(nj.x, nj.y); ctx.stroke();
+          if(frame % 80 === 0 && ni.isHub && Math.random() < .25) spawnPulse(ni, nj);
+          if(frame % 80 === 0 && nj.isHub && Math.random() < .15) spawnPulse(nj, ni);
         }
       }
     }
 
-    nodes.forEach((n, i) => {
+    pulses = pulses.filter(p => p.t <= 1);
+    pulses.forEach(p => {
+      p.t += p.speed;
+      const x = p.ax + (p.bx - p.ax) * p.t, y = p.ay + (p.by - p.ay) * p.t;
+      const [R,G,B] = p.color === 'sig' ? SIG_R : GRN_R;
+      const g = ctx.createRadialGradient(x, y, 0, x, y, 7);
+      g.addColorStop(0, `rgba(${R},${G},${B},.9)`);
+      g.addColorStop(.4, `rgba(${R},${G},${B},.3)`);
+      g.addColorStop(1, `rgba(${R},${G},${B},0)`);
+      ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI*2); ctx.fillStyle = g; ctx.fill();
+      ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(${R},${G},${B},1)`; ctx.fill();
+    });
+
+    nodes.forEach(n => {
       const glow = (Math.sin(n.pulse) + 1) / 2;
-      const isGreen = i % 4 === 0;
-      const color = isGreen ? '#00E6A8' : '#7C5CFF';
-      ctx.beginPath();
-      ctx.arc(n.x, n.y, n.r + glow * .8, 0, Math.PI * 2);
-      ctx.fillStyle = color;
-      ctx.globalAlpha = .5 + glow * .4;
-      ctx.fill();
-      ctx.globalAlpha = 1;
+      const [R,G,B] = n.color === 'sig' ? SIG_R : GRN_R;
+      if(n.isHub){
+        drawGlow(n.x, n.y, n.haloMax * (.5 + glow * .5), n.color, .08 + glow * .07);
+        drawGlow(n.x, n.y, n.r * 3.5, n.color, .25 + glow * .2);
+        ctx.beginPath(); ctx.arc(n.x, n.y, n.r + glow * 1.5, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(${R},${G},${B},${.75 + glow * .25})`; ctx.fill();
+        ctx.beginPath(); ctx.arc(n.x, n.y, n.r * .45, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(255,255,255,${.5 + glow * .4})`; ctx.fill();
+      } else {
+        drawGlow(n.x, n.y, n.r * 3, n.color, .12 + glow * .1);
+        ctx.beginPath(); ctx.arc(n.x, n.y, n.r + glow * .6, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(${R},${G},${B},${.4 + glow * .35})`; ctx.fill();
+      }
     });
 
     animId = requestAnimationFrame(draw);
