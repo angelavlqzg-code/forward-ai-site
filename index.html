@@ -1904,38 +1904,109 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
 <script>
 /* ═══════════════════════════════════════════════════════════════
-   NIA CONFIGURATION — pon tu API key de Anthropic aquí
+   NIA — Sistema de respuestas por keywords
    ═══════════════════════════════════════════════════════════════ */
-const NIA_CONFIG = {
-  apiKey: '',        // ← Pega tu API key de Anthropic: sk-ant-api03-...
-  model:  'claude-sonnet-4-6'
-};
+const NIA_RESPONSES = [
+  {
+    keywords: ["hola", "hey", "buenas", "saludos", "hi", "hello", "qué tal", "que tal"],
+    response: "¡Hola! 👋 Soy NIA, la inteligencia conversacional de Forward AI. Estoy aquí para contarte cómo transformamos negocios con inteligencia artificial aplicada. ¿Qué te gustaría explorar: nuestros productos, servicios, casos de uso o agendar una demo?"
+  },
+  {
+    keywords: ["quién eres", "quien eres", "qué eres", "que eres", "qué es nia", "que es nia", "nia"],
+    response: "Soy NIA, el asistente inteligente de Forward AI. Represento la nueva generación de soluciones conversacionales que construimos: IA que entiende contexto, responde con propósito y se integra a la operación real de tu negocio. ¿Quieres ver qué más podemos hacer por tu organización?"
+  },
+  {
+    keywords: ["forward ai", "forward", "qué es forward", "que es forward", "empresa", "compañía", "compania"],
+    response: "Forward AI es la evolución de Forward Company: una empresa especializada en inteligencia artificial aplicada, desarrollo de productos digitales y transformación tecnológica para empresas, RRHH y gobierno. Diseñamos soluciones que convierten datos en decisiones y procesos en ventaja competitiva. ¿Te muestro nuestro portafolio?"
+  },
+  {
+    keywords: ["productos", "soluciones", "portafolio", "qué ofrecen", "que ofrecen", "qué hacen", "que hacen"],
+    response: "Nuestro ecosistema incluye:\n\n🧠 Forward Platform — plataforma de aprendizaje, desempeño y comunicación interna\n💬 Angie AI — agente conversacional para ventas, atención y procesos internos\n🔮 Adivino de la Demanda — predicción de productos y comportamiento de mercado\n🕵️ Detective de Datos — analítica avanzada de clientes\n📝 Forward Content — generación inteligente de contenido\n⚙️ Desarrollo a la medida y servicios administrados\n\n¿Cuál te interesa explorar a fondo?"
+  },
+  {
+    keywords: ["forward platform", "platform", "plataforma", "capacitación", "capacitacion", "aprendizaje", "lms", "onboarding", "desempeño", "desempeno"],
+    response: "Forward Platform es el futuro del aprendizaje corporativo: onboarding inteligente, medición de desempeño, comunicación interna y engagement, todo en una plataforma personalizable, segura y multidispositivo. Pensada para escalar el talento de tu organización con IA. ¿Quieres ver una demo?"
+  },
+  {
+    keywords: ["angie", "angie ai", "chatbot", "asistente", "agente conversacional", "bot"],
+    response: "Angie AI es más que un chatbot: es un motor de innovación conversacional. Atiende clientes, califica leads, automatiza ventas, resuelve dudas internas y acompaña el desarrollo organizacional. Se integra a tu sitio, app o redes sociales y aprende del contexto de tu negocio. ¿Te interesa implementarlo?"
+  },
+  {
+    keywords: ["adivino", "demanda", "predicción", "prediccion", "predictiva", "forecasting", "forecast"],
+    response: "El Adivino de la Demanda anticipa qué productos y servicios serán los más buscados antes que tu competencia. Usa modelos predictivos sobre datos históricos y señales de mercado para que siempre vayas un paso adelante. Ideal para retail, e-commerce y planeación comercial."
+  },
+  {
+    keywords: ["detective", "datos", "analítica", "analitica", "analytics", "data", "clientes"],
+    response: "El Detective de Datos analiza todo lo que sabes sobre tus clientes —compras, preferencias, comportamiento online— y lo convierte en perfiles accionables. El resultado: ofertas, productos y experiencias que tus clientes realmente quieren. Inteligencia de negocio aplicada, no solo dashboards."
+  },
+  {
+    keywords: ["content", "forward content", "contenido", "marketing", "campañas", "campanas"],
+    response: "Forward Content genera contenido inteligente y personalizado para tus campañas, redes y canales digitales, optimizado por IA para maximizar el retorno. Incluye análisis de efectividad y sugerencias de mejora continua."
+  },
+  {
+    keywords: ["desarrollo", "software", "a la medida", "custom", "aplicaciones", "app", "apps"],
+    response: "Diseñamos y construimos software a la medida: aplicaciones web, móviles, integraciones y plataformas empresariales con IA embebida. Equipos expertos en producto, UX, ingeniería y datos, listos para ejecutar desde el discovery hasta producción."
+  },
+  {
+    keywords: ["staffing", "talento", "equipo", "desarrolladores", "scrum", "outsourcing"],
+    response: "Nuestros servicios de staffing te dan acceso inmediato a desarrolladores, project managers, Scrum Masters y diseñadores —con garantía de desempeño y reemplazo si no se ajustan. Eliminamos cargas operativas y aceleramos tus proyectos tecnológicos."
+  },
+  {
+    keywords: ["servicios administrados", "managed services", "operación", "operacion", "soporte"],
+    response: "Con nuestros servicios administrados, operamos, monitoreamos y evolucionamos tu tecnología para que tu equipo se enfoque en crecer. Desde infraestructura y plataformas hasta soluciones de IA en producción."
+  },
+  {
+    keywords: ["rrhh", "rh", "recursos humanos", "talento humano", "human resources"],
+    response: "Para RRHH ofrecemos un stack completo: Forward Platform para capacitación y desempeño, Angie AI para procesos internos y onboarding, y desarrollo a medida para retos específicos de gestión de talento. Tecnología que humaniza, no reemplaza."
+  },
+  {
+    keywords: ["gobierno", "sector público", "sector publico", "gubernamental", "ciudadano"],
+    response: "Impulsamos la transformación digital del sector público con soluciones tecnológicas e IA que optimizan procesos y mejoran la atención ciudadana. Casos como Gobierno en tus Manos, app móvil para publicar y recabar información ciudadana, son ejemplo de lo que construimos."
+  },
+  {
+    keywords: ["ti", "tecnología", "tecnologia", "it", "tech", "soluciones ti"],
+    response: "Nuestras soluciones TI combinan desarrollo a medida, integración de sistemas, IA aplicada y servicios administrados. Acompañamos a equipos de tecnología desde la estrategia hasta la operación, con foco en resultados de negocio."
+  },
+  {
+    keywords: ["ia", "ai", "inteligencia artificial", "machine learning", "ml", "llm"],
+    response: "La IA es nuestro core. Construimos modelos personalizados, agentes conversacionales, motores predictivos y soluciones generativas adaptadas al contexto de cada cliente. No vendemos IA enlatada: la diseñamos para resolver problemas reales de tu negocio."
+  },
+  {
+    keywords: ["precio", "costo", "cuánto cuesta", "cuanto cuesta", "tarifa", "cotización", "cotizacion", "presupuesto"],
+    response: "Cada solución se cotiza según alcance, integraciones y volumen. Trabajamos por proyecto, suscripción o servicio gestionado. ¿Te conecto con un consultor para armar una propuesta a la medida? Escríbenos a contacto@forwardcompany.com"
+  },
+  {
+    keywords: ["demo", "demostración", "demostracion", "agendar", "reunión", "reunion", "cita", "llamada"],
+    response: "¡Con gusto! Agendamos una demo personalizada donde te mostramos el producto en acción y resolvemos tus preguntas. Escríbenos a contacto@forwardcompany.com o visita www.forwardcompany.com y te contactamos en menos de 24 horas."
+  },
+  {
+    keywords: ["contacto", "contactar", "email", "correo", "teléfono", "telefono", "whatsapp"],
+    response: "Estamos para ayudarte:\n\n📧 contacto@forwardcompany.com\n🌐 www.forwardcompany.com\n📍 México\n\n¿Quieres que un consultor te contacte directamente?"
+  },
+  {
+    keywords: ["casos", "clientes", "éxito", "exito", "experiencia", "trayectoria"],
+    response: "Hemos implementado soluciones para empresas en retail, servicios financieros, RRHH corporativo y entidades gubernamentales. Cada proyecto se diseña a la medida del contexto del cliente. ¿Te interesa un caso específico de tu industria? Cuéntame cuál."
+  },
+  {
+    keywords: ["gracias", "thanks", "thank you", "perfecto", "excelente", "bien"],
+    response: "¡Con todo gusto! 🚀 Si quieres profundizar en algo o agendar una conversación con el equipo, estoy aquí. Forward AI está listo cuando tú lo estés."
+  },
+  {
+    keywords: ["adiós", "adios", "bye", "hasta luego", "nos vemos", "chao"],
+    response: "¡Hasta pronto! 👋 Recuerda: Forward AI está construyendo el futuro de la inteligencia aplicada. Vuelve cuando quieras explorar más."
+  }
+];
 
-async function callClaude(messages, system) {
-  if (!NIA_CONFIG.apiKey) {
-    return 'Para activar a NIA, pega tu API key de Anthropic en NIA_CONFIG.apiKey al inicio del script. Puedes obtenerla en console.anthropic.com.';
+const NIA_DEFAULT_FALLBACK = "Interesante pregunta. Soy NIA y puedo contarte sobre nuestros productos (Forward Platform, Angie AI, Adivino de la Demanda, Detective de Datos, Forward Content), nuestros servicios (desarrollo a medida, staffing, servicios administrados) o nuestros sectores (RRHH, TI, Gobierno). ¿Sobre qué te gustaría saber más? También puedes escribirnos a contacto@forwardcompany.com";
+
+function getNIAResponse(text) {
+  const t = text.toLowerCase();
+  for (const entry of NIA_RESPONSES) {
+    if (entry.keywords.some(kw => t.includes(kw.toLowerCase()))) {
+      return entry.response;
+    }
   }
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': NIA_CONFIG.apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-      'content-type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: NIA_CONFIG.model,
-      max_tokens: 1024,
-      system: system,
-      messages: messages
-    })
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `Error ${res.status}`);
-  }
-  const data = await res.json();
-  return data.content[0].text;
+  return NIA_DEFAULT_FALLBACK;
 }
 </script>
 
@@ -1949,57 +2020,6 @@ async function callClaude(messages, system) {
   const sendBtn = document.getElementById('nia-send');
 
   let panelOpen = false;
-  let history = [];
-
-  // ── KNOWLEDGE BASE ──
-  const knowledgeBase = {
-    brand: "Forward AI",
-    tagline: "Inteligencia que avanza contigo.",
-    positioning: "Capa de implementación de IA con DNA en personas.",
-    tesis: "No construimos el cerebro. Construimos el sistema nervioso.",
-    keyMessages: [
-      "Implementación, no demo.",
-      "Operación, no piloto.",
-      "IA con DNA en personas.",
-      "Donde hay personas, procesos y decisiones, Forward AI puede implementar inteligencia."
-    ],
-    stats: "+300K usuarios · +1M cursos completados · +70 clientes · 10 años en producción real.",
-    solutions: {
-      angie: "Angie es la plataforma de agentes inteligentes de Forward AI. No es un chatbot genérico: es una familia de asistentes especializados por vertical. Verticales: Talento (RRHH, onboarding, evaluación), Atención Ciudadana (reportes, trámites, folios, WhatsApp, Ventanilla Digital, APIs municipales), Fuerza de Ventas (calificación de leads, seguimiento, cierre), Convenciones & Eventos (kioscos, Q&A en vivo, engagement), Procesos Internos (helpdesk, políticas, flujos, automatización).",
-      platform: "Forward Platform + Content es la base de aprendizaje y fábrica de contenido con IA. Incluye: LMS Forward Platform, cursos y microlearning, storyboards y guiones, metodología DCT® (Desarrollo, Creativo, Talento), producción multimedia, evaluaciones adaptativas, retroalimentación contextual, LinkedIn Learning (24K cursos), traducción y localización, rutas personalizadas de aprendizaje.",
-      studio: "Forward Studio ofrece soluciones a la medida: desarrollo de software e IA, integraciones API, dashboards e inteligencia de datos, automatización de procesos, servicios administrados 24/7, soluciones para gobierno digital, transformación digital, escalamiento y medición de impacto."
-    },
-    industries: ["Talento Humano","Gobierno","Retail","Ventas","Capacitación","Eventos & Convenciones","Atención Ciudadana","Procesos Internos","Mesa de Ayuda","Desarrollo Organizacional"],
-    casos: "Casos reales: Viva Aerobus, gobierno, retail, capacitación masiva, convenciones de ventas, asistentes de atención ciudadana."
-  };
-
-  // ── PAGE CONTEXT (sections can set this) ──
-  window.niaPagesContext = window.niaPagesContext || null;
-
-  const SYSTEM = `Eres NIA (Núcleo de Inteligencia Aplicada), la asistente inteligente de Forward AI.
-
-PERSONALIDAD:
-- Cercana, amable, clara, inteligente, profesional pero no rígida.
-- Humana, no robótica. Segura, no arrogante. Conversacional, no informal en exceso.
-- Usa frases naturales como "Claro, te explico.", "Te lo resumo fácil...", "Eso se puede resolver con..."
-- Evita: "Estimado usuario", "Como modelo de lenguaje", "Según la información proporcionada", bloques largos de texto.
-- Emojis solo de forma muy moderada, cuando aporten calidez.
-
-FORMATO DE RESPUESTA:
-1. Respuesta directa en 1-2 frases.
-2. Si aplica, bullets cortos (máximo 5-6).
-3. Cierra con pregunta útil o acción sugerida.
-Máximo 4-6 líneas en respuestas normales. Nunca bloques tipo ensayo.
-
-CONOCIMIENTO DE MARCA:
-${JSON.stringify(knowledgeBase, null, 2)}
-
-REGLAS:
-- Si no tienes un dato específico, di: "No tengo ese dato exacto, pero puedo conectarte con alguien del equipo de Forward AI para revisarlo."
-- NO inventar información.
-- Cuando el usuario pida demo o contacto, solicita: Nombre, Empresa, Correo, Teléfono, Área de interés.
-- Siempre orientar hacia la solución correcta (Angie / Platform+Content / Studio).
-- Responde siempre en español.`;
 
   function addMsg(text, role, opts={}){
     const wrap = document.createElement('div');
@@ -2072,20 +2092,11 @@ REGLAS:
     if(!t) return;
     input.value='';
     addMsg(t,'user');
-    // Build message with optional page context
-    const ctx = window.niaPagesContext;
-    const contextPrefix = ctx ? `[Contexto actual del usuario: sección "${ctx.section}" — ${ctx.description}${ctx.useCases ? ' Casos: '+ctx.useCases.join(', ') : ''}] ` : '';
-    history.push({role:'user',content: contextPrefix + t});
     const typing=addTyping();
-    try{
-      const reply = await callClaude(history, SYSTEM);
-      typing.remove();
-      addMsg(reply,'bot');
-      history.push({role:'assistant',content:reply});
-    } catch(e){
-      typing.remove();
-      addMsg('Hubo un problema con la conexión. Por favor intenta de nuevo.','bot');
-    }
+    await new Promise(r => setTimeout(r, 700 + Math.random() * 500));
+    typing.remove();
+    const reply = getNIAResponse(t);
+    addMsg(reply,'bot');
   }
 
   // Events
