@@ -1050,16 +1050,31 @@ footer{
     setTimeout(()=>{ wrap.remove(); cb(); }, wait);
   }
 
+  function typeText(el, text, speed, onDone){
+    let i=0;
+    el.textContent='';
+    function tick(){
+      if(i<text.length){
+        el.textContent+=text[i++];
+        container.scrollTop=container.scrollHeight;
+        setTimeout(tick, speed);
+      } else {
+        if(onDone) onDone();
+      }
+    }
+    tick();
+  }
+
   function addBubble(role, text, options, cb){
     const wrap=document.createElement('div');
     wrap.className=`chat-msg ${role}`;
     const bub=document.createElement('div');
     bub.className='chat-bubble';
-    bub.textContent=text;
     wrap.appendChild(bub);
     if(options && options.length){
       const opts=document.createElement('div');
       opts.className='chat-options';
+      opts.style.opacity='0';
       options.forEach(o=>{
         const btn=document.createElement('div');
         btn.className='chat-opt';
@@ -1071,7 +1086,16 @@ footer{
     container.appendChild(wrap);
     requestAnimationFrame(()=>{ wrap.classList.add('show'); });
     container.scrollTop=container.scrollHeight;
-    if(cb) setTimeout(cb,400);
+
+    const speed = role==='bot' ? 18 : 12;
+    const optEl = wrap.querySelector('.chat-options');
+    typeText(bub, text, speed, ()=>{
+      if(optEl){
+        optEl.style.transition='opacity .3s';
+        optEl.style.opacity='1';
+      }
+      if(cb) setTimeout(cb, 200);
+    });
   }
 
   function addFolio(cb){
